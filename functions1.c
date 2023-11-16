@@ -111,4 +111,4 @@ char *_strcatpath(char *dest, char *src)
 	}
 	concat[i] = '\0';
 	return (concat);
-}i
+}
