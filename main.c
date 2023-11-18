@@ -1,73 +1,44 @@
 #include "shell.h"
 
 /**
- * free_data - frees the  data structure
+ * main - entry point
+ * @ac: arg count
+ * @av: arg vector
  *
- * @dataSh: represents data structure
- * Return: nothing to return
+ * Return: 0 on success, 1 on error
  */
-void free_data(data_shell *dataSh)
+int main(int ac, char **av)
 {
-	unsigned int i;
+	info_t info[] = { INFO_INIT };
+	int fd = 2;
 
-	for (i = 0; dataSh->_environ[i]; i++)
+	asm ("mov %1, %0\n\t"
+		"add $3, %0"
+		: "=r" (fd)
+		: "r" (fd));
+
+	if (ac == 2)
 	{
-		free(dataSh->_environ[i]);
+		fd = open(av[1], O_RDONLY);
+		if (fd == -1)
+		{
+			if (errno == EACCES)
+				exit(126);
+			if (errno == ENOENT)
+			{
+				_eputs(av[0]);
+				_eputs(": 0: Can't open ");
+				_eputs(av[1]);
+				_eputchar('\n');
+				_eputchar(BUF_FLUSH);
+				exit(127);
+			}
+			return (EXIT_FAILURE);
+		}
+		info->readfd = fd;
 	}
-
-	free(dataSh->_environ);
-	free(datash->pid);
-}
-
-/**
- * set_data - Initializes the data structure
- *
- * @dataSh: represents the data structure
- * @argv: represents the argument vector
- * Return: nothing to return
- */
-void set_data(data_shell *dataSh, char **argv)
-{
-	unsigned int i;
-
-	dataSh->argv = argv;
-	dataSh->input = NULL;
-	dataSh->args = NULL;
-	dataSh->status = 0;
-	dataSh->counter = 1;
-
-	for (i = 0; environ[i]; i++)
-		;
-
-	dataSh->_environ = malloc(sizeof(char *) * (i + 1));
-
-	for (i = 0; environ[i]; i++)
-	{
-		dataSh->_environ[i] = _strdup(environ[i]);
-	}
-
-	dataSh->_environ[i] = NULL;
-	dataSh->pid = aux_itoa(getpid());
-}
-
-/**
- * main - Entry point/starting point
- *
- * @acnt: argument count
- * @argv: argument vector
- *
- * Return: returns 0 on success.
- */
-int main(int acnt, char **argv)
-{
-	data_shell dataDh;
-	(void) acnt;
-
-	signal(SIGINT, get_sigint);
-	set_data(&dataSh, arv);
-	shell_loop(&dataSh);
-	free_data(&dataSh);
-	if (dataSh.status < 0)
-		return (255);
-	return (dataSh.status);
+	populate_env_list(info);
+	read_history(info);
+	hsh(info, av);
+	return (EXIT_SUCCESS);
 }
